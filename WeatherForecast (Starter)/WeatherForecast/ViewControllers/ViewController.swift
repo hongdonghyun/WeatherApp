@@ -9,11 +9,14 @@
 import UIKit
 
 class ViewController: UIViewController {
-    private let weatherTableView = UITableView()
+    private let weatherTableView = WeatherTableView()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+        RequestHelper.shared.makeParam(lat: "37.5607756", lon: "127.0320914")
+        RequestHelper.shared.request(method: .get, endPoint: .currentWeatherEndPoint) {
+            print($0)
+        }
     }
     
     
