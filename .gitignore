@@ -2,6 +2,10 @@
 # Created by https://www.gitignore.io/api/swift,macos,linux,xcode
 # Edit at https://www.gitignore.io/?templates=swift,macos,linux,xcode
 
+### Custom ###
+*.zip
+*.mov
+
 ### Linux ###
 *~
 
