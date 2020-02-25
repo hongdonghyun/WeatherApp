@@ -7,35 +7,33 @@
 //
 
 import Foundation
-
+import CoreLocation
 
 class RequestHelper {
     static let shared = RequestHelper()
-    private var currentParam: [String: String]?
+    private var currentParam: [String: String] = [:]
     
     func request(method: Constants.RequestMethod, endPoint: Constants.endPoint, completion: @escaping (Data) -> ()) {
         guard let url = makeUrl(endPoint: endPoint) else { return }
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        
         let task = URLSession.shared.dataTask(with: request) {
             data, res, err in
             if let res = res as? HTTPURLResponse {
                 if self.statusValid(statusCode: res.statusCode) {
-                    if let data = data {
-                        completion(data)
-                    }
-                    
-                }
+                    guard let data = data else { return }
+                    completion(data)
+                } else { print("Server Error") }
             }
         }
         task.resume()
     }
     
-    func makeParam(lat: String, lon: String)  {
-        currentParam = ["appKey": Constants.appKey, "lat": lat, "lon": lon]
-        print("makeParam success")
+    func makeParam(location: CLLocation?)  {
+        guard let lat = location?.coordinate.latitude else { return }
+        guard let lon = location?.coordinate.longitude else { return }
+        currentParam = ["appKey": Constants.appKey, "lat": "\(lat)", "lon": "\(abs(lon))"]
     }
     
     private func statusValid(statusCode: Int) -> Bool { (200..<300).contains(statusCode) }
@@ -45,8 +43,8 @@ class RequestHelper {
         components.scheme = "https"
         components.host = Constants.baseUrl
         components.path = endPoint.rawValue
-        guard let params = currentParam else { return nil }
-        components.queryItems = params.map { URLQueryItem(name: $0.key, value: $0.value) }
+        
+        components.queryItems = currentParam.map { URLQueryItem(name: $0.key, value: $0.value) }
         
         return components.url
     
