@@ -9,12 +9,7 @@
 import UIKit
 
 class WeatherTableView: UITableView {
-    private let tempLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 30)
-        return label
-    }()
-    
+
     override init(frame: CGRect, style: UITableView.Style) {
         super.init(frame: frame, style: style)
         self.backgroundColor = .clear
@@ -32,7 +27,4 @@ class WeatherTableView: UITableView {
         
     }
     
-    func setupUI() {
-        let safeArea = self.safeAreaInsets
-    }
 }

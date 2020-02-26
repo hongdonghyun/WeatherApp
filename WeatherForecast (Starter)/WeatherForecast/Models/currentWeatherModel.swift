@@ -23,24 +23,17 @@ struct Hourly: Decodable {
     let temperature: Temperature
 }
 
-// MARK: - Grid
 struct Grid: Decodable {
     let latitude, longitude, city, county: String
     let village: String
 }
 
-// MARK: - Sky
 struct Sky: Decodable {
     let code, name: String
 }
 
-// MARK: - Temperature
 struct Temperature: Decodable {
     let tc, tmax, tmin: String
-}
-
-struct Forecast: Decodable {
-    
 }
 
 
