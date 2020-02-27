@@ -9,8 +9,8 @@
 import Foundation
 
 struct Constants {
-    static let appKey = "l7xx4c4586e71b774a44adad65a13d027aad"
-    static let secretKey = "15b9cd048e854c62a6d743daa74eb1f8"
+    static let appKey = "앱 키 입력"
+    static let secretKey = "시크릿 키"
     static let baseUrl = "apis.openapi.sk.com"
     static let localeKo = "ko"
     
