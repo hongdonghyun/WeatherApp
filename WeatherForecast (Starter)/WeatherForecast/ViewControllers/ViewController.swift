@@ -13,18 +13,21 @@ class ViewController: UIViewController {
     private let weatherTableView = WeatherTableView()
     private let imageView = BackgroundImageView(image: UIImage())
     private let blurView = BackgroundBlurView()
+    private lazy var rightButton: UIBarButtonItem = {
+        let icon = UIImage(systemName: "arrow.clockwise")
+        let button = UIBarButtonItem(image: icon, style: .done, target: self, action: #selector(didTaprightBarItem(_:)))
+        button.tintColor = .white
+        return button
+    }()
     
-    private var locationManager = CLLocationManager()
-    private var lastContentOffset: CGFloat = 0
-    private var imageViewCenterConstraint: NSLayoutConstraint!
     private var currentWeather: CurrentWeather?
     private var shortTemp: [[String: String]] = []
-    
     private var shortSky: [[String: String]] = []
     
+    private var locationManager = CLLocationManager()
+    private var imageViewCenterConstraint: NSLayoutConstraint!
     private var timeRelease: String = ""
-    
-    private var naviTitle = ""
+    private var latestUpdateDate = Date(timeIntervalSinceNow: -10)
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -34,120 +37,69 @@ class ViewController: UIViewController {
     }
 }
 
-// MARK: SetupUI
 extension ViewController {
-    func setup() {
-        locationManager.delegate = self
-        weatherTableView.dataSource = self
-        weatherTableView.delegate = self
-        weatherTableView.register(CurrentWeatherCell.self, forCellReuseIdentifier: CurrentWeatherCell.identifier)
-        weatherTableView.register(ShortTermWeatherCell.self, forCellReuseIdentifier: ShortTermWeatherCell.identifier)
-        
+    private func startUpdatingLocation() {
+        let status = CLLocationManager.authorizationStatus()
+        guard status == .authorizedWhenInUse || status == .authorizedAlways else { return }
+        guard CLLocationManager.locationServicesEnabled() else { return }
+        locationManager.startUpdatingLocation()
     }
     
-    func setupUI() {
-        self.navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
-        self.navigationController?.navigationBar.shadowImage = UIImage()
-        view.addSubview(imageView)
-        imageView.addSubview(blurView)
-        view.addSubview(weatherTableView)
-        
-        [imageView, blurView, weatherTableView].forEach {
-            $0.translatesAutoresizingMaskIntoConstraints = false
-        }
-        imageViewCenterConstraint = imageView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
-        NSLayoutConstraint.activate([
-            imageViewCenterConstraint,
-            imageView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            imageView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 1.5),
-            imageView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 1),
-            
-            blurView.topAnchor.constraint(equalTo: view.topAnchor),
-            blurView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            blurView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            blurView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            
-            weatherTableView.topAnchor.constraint(equalTo: view.topAnchor),
-            weatherTableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            weatherTableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            weatherTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-        ])
-    }
-}
-
-extension ViewController {
     func checkAuthorizationStatus() {
         switch CLLocationManager.authorizationStatus() {
         case .notDetermined:
             locationManager.requestWhenInUseAuthorization()
-        case .authorizedWhenInUse:
-            fallthrough
-        case .authorizedAlways:
+        case .authorizedWhenInUse, .authorizedAlways:
             startUpdatingLocation()
         case .restricted, .denied: break
         @unknown default: break
         }
     }
     
-    func getAddress(location: CLLocation) {
-        let geoCoder = CLGeocoder()
-        let locale = Locale(identifier: "ko")
-        geoCoder.reverseGeocodeLocation(location, preferredLocale: locale) { placemarks, error in
-            if let address: [CLPlacemark] = placemarks {
-                self.navigationItem.title = address.last?.name
+    private func getAddress(location: CLLocation) {
+        let geocoder = CLGeocoder()
+        let locale = Locale(identifier: Constants.localeKo)
+        geocoder.reverseGeocodeLocation(location, preferredLocale: locale) { placemarks, error in
+            guard error == nil else { return print(error!.localizedDescription) }
+            guard let place = placemarks?.first else { return }
+            let locality = place.locality ?? ""
+            let subLocality = place.subLocality ?? ""
+            let throughfare = place.thoroughfare ?? ""
+            let address = locality + " " + (!subLocality.isEmpty ? subLocality : throughfare)
+            
+            DispatchQueue.main.async {
+                self.navigationItem.title = address
             }
         }
     }
     
-    func startUpdatingLocation() {
-        let status = CLLocationManager.authorizationStatus()
-        guard status == .authorizedWhenInUse || status == .authorizedAlways else { return }
-        guard CLLocationManager.locationServicesEnabled() else { return }
-        locationManager.startUpdatingLocation()
-        getAddress(location: locationManager.location!)
-        RequestHelper.shared.makeParam(location: locationManager.location)
-        //        DispatchQueue.global().async { [weak self] in
+    private func getData() {
         RequestHelper.shared.request(method: .get, endPoint: .currentWeatherEndPoint) {
-            if let jsonData = try? JSONDecoder().decode(CurrentWeather.self, from: $0) {
+            if let jsonData = try? CurrentWeather.decode(from: $0) {
                 self.currentWeather = jsonData
-                
-                DispatchQueue.main.async {
-                    if let name = self.currentWeather?.weather.hourly.first?.sky.name {
-                        if name.contains("맑음") {
-                            self.imageView.image = UIImage(named: "sunny")
-                        } else if name.contains("낙뢰") {
-                            self.imageView.image = UIImage(named: "lightning")
-                        } else if name.contains("구름") {
-                            self.imageView.image = UIImage(named: "cloudy")
-                        } else if name.contains("흐") || name.contains("비") {
-                            self.imageView.image = UIImage(named: "rainy")
-                        }
-                    }
-                    self.weatherTableView.reloadData()
-                    print("currentWeather reload")
+                DispatchQueue.main.async { [weak self] in
+                    self?.changedBackgroundImage()
+                    self?.weatherTableView.reloadData()
                 }
+                print("currentWeather reload")
+                
             }
         }
         RequestHelper.shared.request(method: .get, endPoint: .shortTermforecast) {
-            if let jsonData = try? JSONDecoder().decode(ShortTermWeatherModel.self, from: $0) {
+            if let jsonData = try? ShortTermWeatherModel.decode(from: $0) {
                 guard let timeRelease = jsonData.weather.forecast3Days.first?.timeRelease else { return }
                 self.timeRelease = timeRelease
                 if let _sky = jsonData.weather.forecast3Days.first?.fcst3Hour.sky {
-                    let sky = _sky.filter{ $0.value != "" }.mapValues({ $0 })
-                    let skySorted = sky.sorted { (first, second) -> Bool in
-                        Int(first.key.components(separatedBy: CharacterSet.decimalDigits.inverted).joined())! < Int(second.key.components(separatedBy: CharacterSet.decimalDigits.inverted).joined())!
-                        
+                    let skySorted = _sky.filter{ $0.value != "" }.mapValues({ $0 }).sorted {
+                        $0.key.getStrInInt() < $1.key.getStrInInt()
                     }
                     skySorted.forEach {
-                        if $0.0.contains("code") {
-                            self.shortSky.append([$0.0: $0.1])
-                        }
+                        if $0.0.contains("code") { self.shortSky.append([$0.0: $0.1]) }
                     }
                 }
                 if let _temp = jsonData.weather.forecast3Days.first?.fcst3Hour.temperature {
-                    let temp = _temp.filter{ $0.value != "" }.mapValues({ $0 })
-                    let tempSorted = temp.sorted { (first, second) -> Bool in
-                        Int(first.key.components(separatedBy: CharacterSet.decimalDigits.inverted).joined())! < Int(second.key.components(separatedBy: CharacterSet.decimalDigits.inverted).joined())!
+                    let tempSorted = _temp.filter{ $0.value != "" }.mapValues({ $0 }).sorted {
+                        $0.key.getStrInInt() < $1.key.getStrInInt()
                     }
                     tempSorted.forEach {
                         self.shortTemp.append([$0.0: $0.1])
@@ -160,13 +112,28 @@ extension ViewController {
             }
             
         }
-        
     }
     
 }
 
+// MARK: - LocationManagerDelegate
+extension ViewController: CLLocationManagerDelegate {
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let location = locations.last else { return }
+        manager.stopUpdatingLocation()
+        
+        // 마지막요청후 2초가 지나야 작업실행
+        let currentDate = Date()
+        if abs(latestUpdateDate.timeIntervalSince(currentDate)) > 2 {
+            getAddress(location: location)
+            RequestHelper.shared.makeParam(location: location)
+            getData()
+            latestUpdateDate = currentDate
+        }
+    }
+}
+
 extension ViewController: UITableViewDelegate {
-    
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         switch indexPath.section {
         case 0:
@@ -204,6 +171,7 @@ extension ViewController: UITableViewDataSource {
         case 0:
             guard let count = currentWeather?.weather.hourly.count else { return 0 }
             return count
+            
         default:
             return shortTemp.count
         }
@@ -216,17 +184,18 @@ extension ViewController: UITableViewDataSource {
                 let currentWeather = currentWeather,
                 let cell = tableView.dequeueReusableCell(withIdentifier: CurrentWeatherCell.identifier, for: indexPath) as? CurrentWeatherCell
                 else { return UITableViewCell() }
+            
             cell.config(weather: currentWeather)
             return cell
         default:
             guard let cell = tableView.dequeueReusableCell(withIdentifier: ShortTermWeatherCell.identifier, for: indexPath) as? ShortTermWeatherCell
                 else { return UITableViewCell() }
+            
             cell.config(
                 temp: shortTemp[indexPath.row],
                 sky: shortSky[indexPath.row],
                 time: timeRelease
             )
-            
             return cell
         }
     }
@@ -234,13 +203,65 @@ extension ViewController: UITableViewDataSource {
     
 }
 
-extension ViewController: CLLocationManagerDelegate {
-    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
-        switch status {
-        case .authorizedWhenInUse, .authorizedAlways:
-            print("인증됨")
-        default:
-            print("인증실패")
+// MARK: ACTIONS
+extension ViewController {
+    @objc func didTaprightBarItem(_ sender: UIBarButtonItem) { getData() }
+}
+
+// MARK: UI's
+extension ViewController {
+    private func changedBackgroundImage() {
+        if let name = self.currentWeather?.weather.hourly.first?.sky.name {
+            if name.contains("맑음") {
+                self.imageView.image = UIImage(named: WeatherImages.sunny.rawValue)
+            } else if name.contains("낙뢰") {
+                self.imageView.image = UIImage(named: WeatherImages.lightning.rawValue)
+            } else if name.contains("구름") {
+                self.imageView.image = UIImage(named: WeatherImages.cloudy.rawValue)
+            } else if name.contains("흐") || name.contains("비") {
+                self.imageView.image = UIImage(named: WeatherImages.rainy.rawValue)
+            }
         }
     }
+    
+    private func setup() {
+        locationManager.delegate = self
+        weatherTableView.dataSource = self
+        weatherTableView.delegate = self
+        weatherTableView.register(CurrentWeatherCell.self, forCellReuseIdentifier: CurrentWeatherCell.identifier)
+        weatherTableView.register(ShortTermWeatherCell.self, forCellReuseIdentifier: ShortTermWeatherCell.identifier)
+        
+    }
+    
+    private func setupUI() {
+        let safeArea = view.safeAreaLayoutGuide
+        self.navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
+        self.navigationController?.navigationBar.shadowImage = UIImage()
+        self.navigationItem.rightBarButtonItem = rightButton
+        view.addSubview(imageView)
+        imageView.addSubview(blurView)
+        view.addSubview(weatherTableView)
+        
+        [imageView, blurView, weatherTableView].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+        }
+        imageViewCenterConstraint = imageView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        NSLayoutConstraint.activate([
+            imageViewCenterConstraint,
+            imageView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            imageView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 1.5),
+            imageView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 1),
+            
+            blurView.topAnchor.constraint(equalTo: view.topAnchor),
+            blurView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            blurView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            blurView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            
+            weatherTableView.topAnchor.constraint(equalTo: safeArea.topAnchor),
+            weatherTableView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
+            weatherTableView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
+            weatherTableView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor)
+        ])
+    }
 }
+

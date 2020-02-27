@@ -11,13 +11,19 @@ import UIKit
 class ShortTermWeatherCell: UITableViewCell {
     static let identifier = "ShortTermCell"
     
+    private enum UI {
+        static let margin: CGFloat = 10
+        static let multiple: CGFloat = 0.5
+        static let imgWidth: CGFloat = 40
+    }
+    
     let termDateLabel: UILabel = {
-        let label = UILabel()
+        let label = CustomLabel()
         return label
     }()
     
     let termTimeLabel: UILabel = {
-        let label = UILabel()
+        let label = CustomLabel()
         return label
     }()
     
@@ -30,19 +36,18 @@ class ShortTermWeatherCell: UITableViewCell {
     let underLine: UIView = {
         let view = UIView()
         view.backgroundColor = .gray
-        
         return view
     }()
     
     let degreeLabel: UILabel = {
-        let label = UILabel()
+        let label = CustomLabel()
         label.font = .systemFont(ofSize: 30, weight: .thin)
         return label
     }()
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        self.backgroundColor = .clear
+        setup()
         setupUI()
     }
     
@@ -50,7 +55,11 @@ class ShortTermWeatherCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func setupUI() {
+    private func setup() {
+        self.backgroundColor = .clear
+    }
+    
+    private func setupUI() {
         let safeArea = self.contentView.safeAreaLayoutGuide
         
         [termDateLabel, termTimeLabel, weatherImage, underLine, degreeLabel].forEach {
@@ -60,25 +69,25 @@ class ShortTermWeatherCell: UITableViewCell {
         
         NSLayoutConstraint.activate([
             termDateLabel.topAnchor.constraint(equalTo: safeArea.topAnchor),
-            termDateLabel.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
-            termDateLabel.widthAnchor.constraint(equalTo: safeArea.widthAnchor, multiplier: 0.5),
+            termDateLabel.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: UI.margin),
+            termDateLabel.widthAnchor.constraint(equalTo: safeArea.widthAnchor, multiplier: UI.multiple),
             
             termTimeLabel.topAnchor.constraint(equalTo: termDateLabel.bottomAnchor),
             termTimeLabel.centerXAnchor.constraint(equalTo: termDateLabel.centerXAnchor),
-            termTimeLabel.widthAnchor.constraint(equalTo: safeArea.widthAnchor, multiplier: 0.5),
+            termTimeLabel.widthAnchor.constraint(equalTo: safeArea.widthAnchor, multiplier: UI.multiple),
             
             weatherImage.leadingAnchor.constraint(equalTo: termTimeLabel.trailingAnchor),
             weatherImage.centerYAnchor.constraint(equalTo: termDateLabel.bottomAnchor),
-            weatherImage.widthAnchor.constraint(equalToConstant: 40),
-            weatherImage.heightAnchor.constraint(equalToConstant: 40),
+            weatherImage.widthAnchor.constraint(equalToConstant: UI.imgWidth),
+            weatherImage.heightAnchor.constraint(equalToConstant: UI.imgWidth),
             
-            underLine.topAnchor.constraint(equalTo: weatherImage.bottomAnchor, constant: 10),
+            underLine.topAnchor.constraint(equalTo: weatherImage.bottomAnchor, constant: UI.margin),
             underLine.centerXAnchor.constraint(equalTo: weatherImage.centerXAnchor),
             underLine.widthAnchor.constraint(equalTo: weatherImage.widthAnchor),
             underLine.heightAnchor.constraint(equalToConstant: 1),
             
             degreeLabel.centerYAnchor.constraint(equalTo: weatherImage.centerYAnchor),
-            degreeLabel.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
+            degreeLabel.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -UI.margin),
         ])
     }
     
@@ -96,7 +105,7 @@ class ShortTermWeatherCell: UITableViewCell {
         let strDate = strDateAddingInterval(dateString: time, interval: addTime).split(separator: "/")
         
         weatherImage.image = UIImage(named: skyValue.replacingOccurrences(of: "_S", with: "_O"))!
-        degreeLabel.text = "\(stringDoubleRounded(string: tempValue, indexing: 0))°"
+        degreeLabel.text = "\(stringDoubleRounded(string: tempValue, rounded: 0))°"
         termDateLabel.text = "\(strDate[0])"
         termTimeLabel.text = "\(strDate[1])"
         

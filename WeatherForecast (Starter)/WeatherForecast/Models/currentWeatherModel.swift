@@ -37,3 +37,19 @@ struct Temperature: Decodable {
 }
 
 
+//// MARK: - CustomStringConvertible
+//
+//extension CurrentWeather: CustomStringConvertible {
+//  var description: String {
+//    return """
+//    Grid : \(grid)
+//    Wind : \(wind)
+//    Precipitation : \(precipitation)
+//    Sky : \(sky)
+//    Temperature : \(temperature)
+//    Humidity : \(humidity)
+//    """
+//  }
+//}
+
+

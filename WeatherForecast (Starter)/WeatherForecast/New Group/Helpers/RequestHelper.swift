@@ -13,7 +13,7 @@ class RequestHelper {
     static let shared = RequestHelper()
     private var currentParam: [String: String] = [:]
     
-    func request(method: Constants.RequestMethod, endPoint: Constants.endPoint, completion: @escaping (Data) -> ()) {
+    func request(method: Constants.RequestMethod, endPoint: Constants.EndPoint, completion: @escaping (Data) -> ()) {
         guard let url = makeUrl(endPoint: endPoint) else { return }
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
@@ -38,19 +38,14 @@ class RequestHelper {
     
     private func statusValid(statusCode: Int) -> Bool { (200..<300).contains(statusCode) }
     
-    private func makeUrl(endPoint: Constants.endPoint) -> URL? {
+    private func makeUrl(endPoint: Constants.EndPoint) -> URL? {
         var components = URLComponents()
         components.scheme = "https"
         components.host = Constants.baseUrl
         components.path = endPoint.rawValue
-        
         components.queryItems = currentParam.map { URLQueryItem(name: $0.key, value: $0.value) }
-        
         return components.url
-    
-        
     }
     
-    private init() {}
-    
+    private init() {}    
 }

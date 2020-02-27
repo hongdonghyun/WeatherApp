@@ -9,8 +9,11 @@
 import UIKit
 
 class CurrentWeatherCell: UITableViewCell {
-    static let identifier:String = "CurrentWeatherCell"
-    let leadingMargin: CGFloat = 20
+    static let identifier: String = "CurrentWeatherCell"
+    private enum UI {
+        static let margin: CGFloat = 20
+        static let imgWidth: CGFloat = 50
+    }
     
     private let weatherImageView: UIImageView = {
         let imageView = UIImageView()
@@ -18,30 +21,27 @@ class CurrentWeatherCell: UITableViewCell {
     }()
     
     private let weatherLabel: UILabel = {
-        let label = UILabel()
+        let label = CustomLabel()
         label.font = .systemFont(ofSize: 20)
-        label.textColor = .white
         return label
     }()
     
     private let minMaxTempLabel: UILabel = {
-        let label = UILabel()
+        let label = CustomLabel()
         label.font = .systemFont(ofSize: 20)
-        label.textColor = .white
         return label
     }()
     
     private let tempLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 100, weight: .thin)
-        label.textColor = .white
+        let label = CustomLabel()
+        label.font = .systemFont(ofSize: 120, weight: .ultraLight)
         return label
     }()
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
+        setup()
         setupUI()
-        self.backgroundColor = .clear
         
     }
     
@@ -49,7 +49,12 @@ class CurrentWeatherCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    private func setup() {
+        self.backgroundColor = .clear
+    }
+    
     private func setupUI() {
+        
         let safeArea = self.contentView.safeAreaLayoutGuide
         [tempLabel, minMaxTempLabel, weatherImageView, weatherLabel].forEach {
             contentView.addSubview($0)
@@ -57,16 +62,16 @@ class CurrentWeatherCell: UITableViewCell {
         }
         
         NSLayoutConstraint.activate([
-            tempLabel.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor,constant: -20),
-            tempLabel.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: leadingMargin),
+            tempLabel.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor,constant: -UI.margin),
+            tempLabel.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: UI.margin),
             
             minMaxTempLabel.bottomAnchor.constraint(equalTo: tempLabel.topAnchor),
-            minMaxTempLabel.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: leadingMargin),
+            minMaxTempLabel.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: UI.margin),
             
             weatherImageView.bottomAnchor.constraint(equalTo: minMaxTempLabel.topAnchor),
-            weatherImageView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: leadingMargin),
-            weatherImageView.widthAnchor.constraint(equalToConstant: 50),
-            weatherImageView.heightAnchor.constraint(equalToConstant: 50),
+            weatherImageView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: UI.margin),
+            weatherImageView.widthAnchor.constraint(equalToConstant: UI.imgWidth),
+            weatherImageView.heightAnchor.constraint(equalToConstant: UI.imgWidth),
             
             weatherLabel.leadingAnchor.constraint(equalTo: weatherImageView.trailingAnchor),
             weatherLabel.bottomAnchor.constraint(equalTo: minMaxTempLabel.topAnchor),
@@ -85,7 +90,7 @@ class CurrentWeatherCell: UITableViewCell {
         
         self.weatherLabel.text = skyName
         self.weatherImageView.image = UIImage(named: skyCode) ?? UIImage(named: "SKY_O01")
-        self.minMaxTempLabel.text = "⤓ \(stringDoubleRounded(string: tempMin, indexing: 1))°  ⤒\(stringDoubleRounded(string: tempMax, indexing: 1))°"
-        self.tempLabel.text = "\(stringDoubleRounded(string: tempCurrent, indexing: 1))°"
+        self.minMaxTempLabel.text = "⤓ \(stringDoubleRounded(string: tempMin, rounded: 1))°  ⤒\(stringDoubleRounded(string: tempMax, rounded: 1))°"
+        self.tempLabel.text = "\(stringDoubleRounded(string: tempCurrent, rounded: 1))°"
     }
 }
