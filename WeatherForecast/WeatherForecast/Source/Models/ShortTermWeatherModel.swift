@@ -3,7 +3,7 @@
 //  WeatherForecast
 //
 //  Created by Hongdonghyun on 2020/02/26.
-//  Copyright © 2020 Giftbot. All rights reserved.
+//  Copyright © 2020 hong3. All rights reserved.
 //
 
 import Foundation
@@ -16,7 +16,7 @@ struct ShortTermWeatherModel: Decodable {
 // MARK: - Weather
 struct ShortTermWeather: Decodable {
     let forecast3Days: [Forecast3Day]
-
+    
     enum CodingKeys: String, CodingKey {
         case forecast3Days = "forecast3days"
     }
@@ -26,7 +26,7 @@ struct ShortTermWeather: Decodable {
 struct Forecast3Day: Decodable {
     let timeRelease: String
     let fcst3Hour: Fcst3Hour
-
+    
     enum CodingKeys: String, CodingKey {
         case timeRelease
         case fcst3Hour = "fcst3hour"

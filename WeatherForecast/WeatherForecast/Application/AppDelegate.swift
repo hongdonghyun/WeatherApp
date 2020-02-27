@@ -2,8 +2,8 @@
 //  AppDelegate.swift
 //  WeatherForecast
 //
-//  Created by Giftbot on 2020/02/22.
-//  Copyright © 2020 Giftbot. All rights reserved.
+//  Created by hong3 on 2020/02/22.
+//  Copyright © 2020 hong3. All rights reserved.
 //
 
 import UIKit
@@ -15,8 +15,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         window = UIWindow(frame: UIScreen.main.bounds)
-//        let mainNavigation = UINavigationController(rootViewController: ViewController())
-        self.window?.rootViewController = ViewController()
+        self.window?.rootViewController = WeatherViewController()
         self.window?.makeKeyAndVisible()
         
         return true

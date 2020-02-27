@@ -3,7 +3,7 @@
 //  WeatherForecast
 //
 //  Created by Hongdonghyun on 2020/02/27.
-//  Copyright © 2020 Giftbot. All rights reserved.
+//  Copyright © 2020 hong3. All rights reserved.
 //
 
 import Foundation
