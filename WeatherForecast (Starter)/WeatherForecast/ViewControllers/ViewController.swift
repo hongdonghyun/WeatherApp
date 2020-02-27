@@ -13,10 +13,27 @@ class ViewController: UIViewController {
     private let weatherTableView = WeatherTableView()
     private let imageView = BackgroundImageView(image: UIImage())
     private let blurView = BackgroundBlurView()
-    private lazy var rightButton: UIBarButtonItem = {
-        let icon = UIImage(systemName: "arrow.clockwise")
-        let button = UIBarButtonItem(image: icon, style: .done, target: self, action: #selector(didTaprightBarItem(_:)))
-        button.tintColor = .white
+    
+    private let titleView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .clear
+        return view
+    }()
+    
+    private let titleLabel: UILabel = {
+       let label = CustomLabel()
+        return label
+    }()
+    private let titleTimeLabel: UILabel = {
+        let label = CustomLabel()
+        return label
+    }()
+    
+    private let refreshButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("↻", for: .normal)
+        button.titleLabel?.font = .preferredFont(forTextStyle: .title1)
+        button.addTarget(self, action: #selector(RefreshButtonAction(_:)), for: .touchUpInside)
         return button
     }()
     
@@ -56,9 +73,12 @@ extension ViewController {
         }
     }
     
-    private func getAddress(location: CLLocation) {
+    private func getTitle(location: CLLocation) {
+        
         let geocoder = CLGeocoder()
         let locale = Locale(identifier: Constants.localeKo)
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = DateType.currentDate.rawValue
         geocoder.reverseGeocodeLocation(location, preferredLocale: locale) { placemarks, error in
             guard error == nil else { return print(error!.localizedDescription) }
             guard let place = placemarks?.first else { return }
@@ -68,7 +88,7 @@ extension ViewController {
             let address = locality + " " + (!subLocality.isEmpty ? subLocality : throughfare)
             
             DispatchQueue.main.async {
-                self.navigationItem.title = address
+                self.updateTitleView(address: address, time: dateFormatter.string(from: Date()))
             }
         }
     }
@@ -125,7 +145,7 @@ extension ViewController: CLLocationManagerDelegate {
         // 마지막요청후 2초가 지나야 작업실행
         let currentDate = Date()
         if abs(latestUpdateDate.timeIntervalSince(currentDate)) > 2 {
-            getAddress(location: location)
+            getTitle(location: location)
             RequestHelper.shared.makeParam(location: location)
             getData()
             latestUpdateDate = currentDate
@@ -137,7 +157,7 @@ extension ViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         switch indexPath.section {
         case 0:
-            return view.frame.height - view.safeAreaInsets.top
+            return weatherTableView.frame.height - titleView.safeAreaInsets.top
         default:
             return 100
         }
@@ -205,7 +225,28 @@ extension ViewController: UITableViewDataSource {
 
 // MARK: ACTIONS
 extension ViewController {
-    @objc func didTaprightBarItem(_ sender: UIBarButtonItem) { getData() }
+    
+    func updateTitleView(address: String, time: String) {
+        titleLabel.text = address
+        titleTimeLabel.text = time
+        
+        titleLabel.alpha = 0
+        titleTimeLabel.alpha = 0
+        refreshButton.alpha = 0
+        UIView.animate(withDuration: 0.4) {
+          self.titleLabel.alpha = 1
+          self.refreshButton.alpha = 1
+          self.refreshButton.alpha = 1
+        }
+    }
+    
+    @objc func RefreshButtonAction(_ sender: UIButton) {
+        startUpdatingLocation()
+        let spinAnimation = CABasicAnimation(keyPath: "transform.rotation")
+        spinAnimation.duration = 0.5
+        spinAnimation.toValue = CGFloat.pi * 2
+        sender.layer.add(spinAnimation, forKey: "spinAnimation")
+    }
 }
 
 // MARK: UI's
@@ -230,37 +271,58 @@ extension ViewController {
         weatherTableView.delegate = self
         weatherTableView.register(CurrentWeatherCell.self, forCellReuseIdentifier: CurrentWeatherCell.identifier)
         weatherTableView.register(ShortTermWeatherCell.self, forCellReuseIdentifier: ShortTermWeatherCell.identifier)
-        
     }
     
     private func setupUI() {
         let safeArea = view.safeAreaLayoutGuide
-        self.navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
-        self.navigationController?.navigationBar.shadowImage = UIImage()
-        self.navigationItem.rightBarButtonItem = rightButton
-        view.addSubview(imageView)
-        imageView.addSubview(blurView)
-        view.addSubview(weatherTableView)
         
-        [imageView, blurView, weatherTableView].forEach {
+        [imageView, titleView, weatherTableView].forEach {
+            view.addSubview($0)
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
+        
+        [blurView].forEach {
+            imageView.addSubview($0)
+            $0.translatesAutoresizingMaskIntoConstraints = false
+        }
+        
+        [titleLabel, titleTimeLabel, refreshButton].forEach {
+            titleView.addSubview($0)
+            $0.translatesAutoresizingMaskIntoConstraints = false
+        }
+        
         imageViewCenterConstraint = imageView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         NSLayoutConstraint.activate([
+            titleView.topAnchor.constraint(equalTo: safeArea.topAnchor),
+            titleView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
+            titleView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor),
+            titleView.heightAnchor.constraint(equalToConstant: 45),
+            
             imageViewCenterConstraint,
-            imageView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            imageView.centerYAnchor.constraint(equalTo: safeArea.centerYAnchor),
             imageView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 1.5),
             imageView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 1),
             
             blurView.topAnchor.constraint(equalTo: view.topAnchor),
-            blurView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            blurView.bottomAnchor.constraint(equalTo: imageView.bottomAnchor),
             blurView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             blurView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             
-            weatherTableView.topAnchor.constraint(equalTo: safeArea.topAnchor),
+            weatherTableView.topAnchor.constraint(equalTo: titleView.bottomAnchor),
             weatherTableView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
             weatherTableView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
             weatherTableView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor)
+        ])
+        
+        NSLayoutConstraint.activate([
+            titleLabel.centerXAnchor.constraint(equalTo: titleView.centerXAnchor),
+            titleLabel.topAnchor.constraint(equalTo: titleView.topAnchor),
+            
+            titleTimeLabel.centerXAnchor.constraint(equalTo: titleView.centerXAnchor),
+            titleTimeLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor),
+            
+            refreshButton.centerYAnchor.constraint(equalTo: titleView.centerYAnchor),
+            refreshButton.trailingAnchor.constraint(equalTo: titleView.trailingAnchor, constant: -20)
         ])
     }
 }
