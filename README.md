@@ -1,16 +1,21 @@
 # 날씨앱
+> 처음으로 만들어본 앱
 
-# 스크린샷
+[SK Weather Planet API](https://openapi.sk.com/api/detailView)를 사용하여 만든 날씨앱
 
-![ScreenShot](./Assets/AppImage.jpeg)
+## 설명
 
-# 기간
+- 기간: 2020.02.24 ~ 2020.02.27
+- 사용 기술:
+  - 언어: Swift
+  - 프레임워크: UIKit
+- 인원: 1명
+- 성과: 
+  - TableView를 사용해 페이지를 처음 구성해봄
+  - ScrollView를 대체하여 TableView를 사용할 수 있다는것을 알게됨
+  - API 호출을 할 수 있게 되었다.
 
-2020.02.24 ~ 2020.02.27
+  
+## 결과
 
-# 설명
-
-- [SK Weather Planet API](https://openapi.sk.com/api/detailView)를 사용하여 만든 날씨앱
--  현재날씨 API와 단기예보 API를 사용
--  두개의 셀을 사용하여 현재날씨와 단기예보 데이터를 보여줌
-- iOS 13 기준
+ ![marketbroccoli](./assets/AppImage.jpeg)
