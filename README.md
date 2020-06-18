@@ -18,4 +18,4 @@
   
 ## 결과
 
- ![marketbroccoli](./assets/AppImage.jpeg)
+ ![marketbroccoli](./Assets/AppImage.jpeg)
