@@ -5,7 +5,8 @@
 ### Custom ###
 *.zip
 *.mov
-WeatherForecast/WeatherForecast/Resource/Config/
+#WeatherForecast/WeatherForecast/Resource/Config/
+Config/
 
 ### Linux ###
 *~
