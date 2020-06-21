@@ -40,6 +40,8 @@
 		7CB6770D2403E50F008DEAB4 /* CurrentWeatherCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentWeatherCell.swift; sourceTree = "<group>"; };
 		7CB6770F2403E561008DEAB4 /* ShortTermWeatherCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortTermWeatherCell.swift; sourceTree = "<group>"; };
 		7CB677112403FA16008DEAB4 /* BackgroundImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundImageView.swift; sourceTree = "<group>"; };
+		7CCFABB7249F32C1002A6662 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
+		7CCFABB8249F32CB002A6662 /* Production.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Production.xcconfig; sourceTree = "<group>"; };
 		7CF0065D24075DF2005393B8 /* CustomLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomLabel.swift; sourceTree = "<group>"; };
 		7CF006692407EB1A005393B8 /* WeatherView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherView.swift; sourceTree = "<group>"; };
 		7CF0066E2407F02B005393B8 /* DummyData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DummyData.swift; sourceTree = "<group>"; };
@@ -126,6 +128,15 @@
 			path = "New Group";
 			sourceTree = "<group>";
 		};
+		7CCFABB6249F32A9002A6662 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				7CCFABB7249F32C1002A6662 /* Debug.xcconfig */,
+				7CCFABB8249F32CB002A6662 /* Production.xcconfig */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
 		7CF0065C24075DDA005393B8 /* CustomUI */ = {
 			isa = PBXGroup;
 			children = (
@@ -172,6 +183,7 @@
 		7CF0066B2407EFBD005393B8 /* Resource */ = {
 			isa = PBXGroup;
 			children = (
+				7CCFABB6249F32A9002A6662 /* Config */,
 				526451FB240174F600DC39B7 /* Info.plist */,
 				526451F6240174F600DC39B7 /* Assets.xcassets */,
 				7CF0066E2407F02B005393B8 /* DummyData.swift */,
