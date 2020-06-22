@@ -9,8 +9,12 @@
 import Foundation
 
 struct Constants {
-    static let appKey = "앱 키 입력"
-    static let secretKey = "시크릿 키"
+    static var appKey: String {
+        (Bundle.main.infoDictionary?["APP_KEY"] as? String) ?? ""
+    }
+    static var secretKey: String {
+        (Bundle.main.infoDictionary?["API_SECRET_KEY"] as? String) ?? ""
+    }
     static let baseUrl = "apis.openapi.sk.com"
     static let localeKo = "ko"
     
@@ -26,6 +30,7 @@ struct Constants {
         case patch = "PATCH"
         case delete = "DELETE"
     }
+
 }
 
 enum WeatherImages: String {

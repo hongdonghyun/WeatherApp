@@ -25,6 +25,7 @@ class WeatherViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        print(Constants.appKey)
         checkAuthorizationStatus()
         setup()
     }
